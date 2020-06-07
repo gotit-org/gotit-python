@@ -1,11 +1,10 @@
 from flask import Flask, request, render_template
 from modules import face, object as obj, utility
-import subprocess
-import sys
+
 
 def create_app():
     # create and configure the app
-    app = Flask("got it", instance_relative_config=True, template_folder="./")
+    app = Flask("got it", instance_relative_config=True)
     # configure max size of payload content 
     app.config['MAX_CONTENT_LENGTH'] = 3 * 1024 * 1024
 
