@@ -1,0 +1,27 @@
+{
+    "faceDetection": [
+        "list of images file"
+    ],
+    
+    "faceVerification":{
+        "known": [
+            {
+                "image": "base64 encoded image",
+                "box": [277, 90, 48, 63]
+            }
+        ],
+        "candidates": [
+            {
+                "id": 0,
+                "embedding": "base64 encoded string"
+            }
+        ]
+    },
+
+    "objectDetection": "image file",
+
+    "objectColorExtraction": {
+        "image": "base64 encoded image",
+        "box": [277, 90, 48, 63]
+    }
+}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <!-- internet exp -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Got It Find your lost belongs">
+    <meta name="keywords" content="Missings, lost, found, lost child, lost item">
+    <meta name="author" content="Abdalrahman Ahmed & Hassan Shiemy & Kerolous Girgis & Yomna Hosny & Asmaa Khaled">
+    <!-- first mobile meta  -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+
+    <title>Got It - python</title>
+
+    <link rel="icon" href="/favicon.ico">
+
+    <style>
+        body {
+            overflow: hidden;
+            font-family: "Lucida Console", Monaco, monospace;
+            line-height: 1.5;
+            min-height: 100vh;
+            color: #fff;
+            background: #f2f2f2;
+        }
+
+        a {
+            color: #fff;
+            text-decoration: none;
+            border-bottom: solid 2px;
+        }
+
+        .content {
+            width: 500px;
+            height: 300px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            -webkit-transform: translate(-50%, -50%);
+            -ms-transform: translate(-50%, -50%);
+            background-color: #333;
+            padding: 45px 20px 20px;
+            box-sizing: border-box;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .browser-bar {
+            background: #f9f9f3;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 5px;
+            overflow: hidden;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .button {
+            display: inline-block;
+            border-radius: 50%;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+        }
+
+        .close {
+            background: #fc635d;
+        }
+
+        .min {
+            background: #fdbc40;
+        }
+
+        .max {
+            background: #34c84a;
+        }
+
+        .sign {
+            font-size: 50px;
+            display: block;
+            color: #fdbc40
+        }
+
+        .text{
+            text-align:center;
+            font-size: 18px;
+        }
+
+        @media (max-width: 640px) {
+            .content {
+                width: 95%;
+                height: 400px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="browser-bar">
+            <span class="close button"></span>
+            <span class="close min button"></span>
+            <span class="close max button"></span>
+        </div>
+        <div class="text">
+            <div>
+                <span class="sign">&#11088;</span>
+            </div>
+            <span>
+                Got It python app is running now <br />
+                You can start using the endpoints. <br />
+                For more information of how to use it <br />
+                Visit this link <a href='https://github.com/Abd-alrahman-ahmed/Got-It/tree/dev/python' target='_blank'>Got It</a> and start over.
+            </span>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+flask
+tensorflow==1.14.0
+keras==2.2.5
+mtcnn
+git+https://github.com/rcmalli/keras-vggface.git
+numpy==1.16.4
+tqdm
+requests
+pybind11
+mrcnn
