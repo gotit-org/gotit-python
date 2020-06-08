@@ -42,7 +42,6 @@ def read_images(files, target_size=None, require_count=None, limit: int=5) -> li
 
         images = list()
         for file in files.keys():
-            fileData = files[file]
             images.append(read_image(files[file], target_size))
 
         return images

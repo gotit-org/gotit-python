@@ -10,9 +10,11 @@
 
 using namespace std;
 namespace py = pybind11;
+const int NUMBER_OF_COLORS = 11;
 
 typedef struct colorPixel
 {
+    int color_id;
     char *name;
     int red;
     int green;
@@ -23,37 +25,37 @@ vector<colorPixel> colors;
 
 void InitColorsMap()
 {
-    colors.push_back({"Red", 255, 0, 0});
-    colors.push_back({"Red", 165, 42, 42});
-    colors.push_back({"Red", 139, 0, 0});
-    colors.push_back({"Red", 220, 20, 60});
-    colors.push_back({"Green", 0, 255, 0});
-    colors.push_back({"Green", 0, 128, 0});
-    colors.push_back({"Green", 0, 250, 154});
-    colors.push_back({"Green", 154, 205, 50});
-    colors.push_back({"Green", 173, 255, 47});
-    colors.push_back({"Green", 127, 255, 0});
-    colors.push_back({"Green", 34, 139, 34});
-    colors.push_back({"Blue", 0, 0, 255});
-    colors.push_back({"Blue", 65, 105, 225});
-    colors.push_back({"Blue", 30, 144, 225});
-    colors.push_back({"Blue", 0, 191, 225});
-    colors.push_back({"Blue", 176, 224, 230});
-    colors.push_back({"Brown", 160, 82, 45});
-    colors.push_back({"Brown", 139, 69, 19});
-    colors.push_back({"Yellow", 255, 255, 0});
-    colors.push_back({"Yellow", 255, 215, 0});
-    colors.push_back({"Orange", 255, 165, 0});
-    colors.push_back({"Purple", 128, 0, 128});
-    colors.push_back({"Purple", 186, 85, 211});
-    colors.push_back({"Pink", 255, 105, 188});
-    colors.push_back({"White", 255, 250, 250});
-    colors.push_back({"White", 255, 255, 255});
-    colors.push_back({"Gray", 169, 169, 169});
-    colors.push_back({"Black", 0, 0, 0});
+    colors.push_back({0, "Red", 255, 0, 0});
+    colors.push_back({0, "Red", 165, 42, 42});
+    colors.push_back({0, "Red", 139, 0, 0});
+    colors.push_back({0, "Red", 220, 20, 60});
+    colors.push_back({1, "Green", 0, 255, 0});
+    colors.push_back({1, "Green", 0, 128, 0});
+    colors.push_back({1, "Green", 0, 250, 154});
+    colors.push_back({1, "Green", 154, 205, 50});
+    colors.push_back({1, "Green", 173, 255, 47});
+    colors.push_back({1, "Green", 127, 255, 0});
+    colors.push_back({1, "Green", 34, 139, 34});
+    colors.push_back({2, "Blue", 0, 0, 255});
+    colors.push_back({2, "Blue", 65, 105, 225});
+    colors.push_back({2, "Blue", 30, 144, 225});
+    colors.push_back({2, "Blue", 0, 191, 225});
+    colors.push_back({2, "Blue", 176, 224, 230});
+    colors.push_back({3, "Brown", 160, 82, 45});
+    colors.push_back({3, "Brown", 139, 69, 19});
+    colors.push_back({4, "Yellow", 255, 255, 0});
+    colors.push_back({4, "Yellow", 255, 215, 0});
+    colors.push_back({5, "Orange", 255, 165, 0});
+    colors.push_back({6, "Purple", 128, 0, 128});
+    colors.push_back({6, "Purple", 186, 85, 211});
+    colors.push_back({7, "Pink", 255, 105, 188});
+    colors.push_back({8, "White", 255, 250, 250});
+    colors.push_back({8, "White", 255, 255, 255});
+    colors.push_back({9, "Gray", 169, 169, 169});
+    colors.push_back({10, "Black", 0, 0, 0});
 }
 
-char *NearsetColor(unsigned char *pixel)
+int NearsetColor(unsigned char *pixel)
 {
     int mindiff = INT_MAX, diff;
     int colorIndex = 0, redDiff = 0, greenDiff = 0, blueDiff = 0;
@@ -70,10 +72,10 @@ char *NearsetColor(unsigned char *pixel)
             colorIndex = i;
         }
     }
-    return colors[colorIndex].name;
+    return colors[colorIndex].color_id;
 }
 
-py::list GetColors(py::array_t<uint8_t> image, py::array_t<bool> mask)
+vector<vector<double>> GetColors(py::array_t<uint8_t> image, py::array_t<bool> mask)
 {
     try
     {
@@ -83,14 +85,12 @@ py::list GetColors(py::array_t<uint8_t> image, py::array_t<bool> mask)
         unsigned long long N = mask.shape(2);
         unsigned char *imagePointer = (unsigned char *)image.data();
         bool *maskPointer = (bool *)mask.data();
-        
-        string name;
-        py::list result;
-        vector<map<string, int>> colorsNames;
-        colorsNames.resize(N);
-        int *objectsSize = new int[N];
-        memset(objectsSize, 0, sizeof(objectsSize));
-        
+        int id;
+
+        vector<vector<double>> result(N, vector<double>(NUMBER_OF_COLORS, 0));
+        vector<vector<int>> colorsFreq(N, vector<int>(NUMBER_OF_COLORS, 0));
+        vector<int> objectsSize(N, 0);
+
         for (unsigned long long i = 0; i < height; i++)
         {
             for (unsigned long long j = 0; j < width; j++)
@@ -98,13 +98,15 @@ py::list GetColors(py::array_t<uint8_t> image, py::array_t<bool> mask)
                 unsigned long long redIdx = (i * width + j) * 3;
                 unsigned long long greenIdx = (i * width + j) * 3 + 1;
                 unsigned long long blueIdx = (i * width + j) * 3 + 2;
+                bool f = false;
                 for(int k = 0; k < N; k++){
-                    bool f = false;
                     unsigned long long idx = (i * width + j) * N + k;
                     if(maskPointer[idx]){
-                        if(!f)
-                            name = NearsetColor(new unsigned char[3]{imagePointer[redIdx], imagePointer[greenIdx], imagePointer[blueIdx]});
-                        colorsNames[k][name]++;
+                        if(!f){
+                            id = NearsetColor(new unsigned char[3]{imagePointer[redIdx], imagePointer[greenIdx], imagePointer[blueIdx]});
+                            f = true;
+                        }
+                        colorsFreq[k][id]++;
                         objectsSize[k]++;
                     }
                 }
@@ -112,17 +114,9 @@ py::list GetColors(py::array_t<uint8_t> image, py::array_t<bool> mask)
         }
         
         for(int i = 0; i < N; i++){
-            py::list obj;
-            for(auto key_value : colorsNames[i]){
-                long double value = (long double)((int)(((key_value.second * 1.00)/objectsSize[i]) * 10000 + .5)) / 100.0;
-                if(value >= 1.0){
-                    py::dict color;
-                    color["name"] = key_value.first;
-                    color["percentage"] = value;
-                    obj.append(color);
-                }
+            for(int j = 0; j < NUMBER_OF_COLORS; j++){
+                result[i][j] = (double)((int)(((colorsFreq[i][j] * 1.0)/objectsSize[i]) * 10000 + .5)) / 100.0;
             }
-            result.append(obj);
         }
 
         return result;

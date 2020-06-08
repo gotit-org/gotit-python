@@ -6,12 +6,6 @@ class FaceDetected:
         self.faces = faces
 
 
-class FaceMatchScore:
-    def __init__(self, id, score):
-        self.id = id
-        self.score = score
-
-
 class FaceVerificationResult:
     def __init__(self, matching_score: list, embeddenges: str):
         self.matching_score = matching_score
@@ -30,3 +24,10 @@ class ObjectDetectionResult:
     def __init__(self, count: int, objects: list):
         self.count = count
         self.objects = objects
+
+
+class MatchScore:
+    def __init__(self, id, score):
+        self.id = id
+        self.score = score
+        

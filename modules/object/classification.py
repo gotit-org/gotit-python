@@ -1,9 +1,12 @@
 from modules.singleton import mrcnn, graph
 from modules import utility
 from models import result
-from models.response_models import ObjectDetected, ObjectDetectionResult
+from models.response_models import ObjectDetected, ObjectDetectionResult, MatchScore
 from setuptools import sandbox
+from scipy.spatial.distance import cosine
+import numpy as np
 import os
+import base64
 try:
     from . import ColorPy
 except ImportError:
@@ -40,10 +43,11 @@ def detect(image):
 
             # get colors for objects
             colors = ColorPy.get_colors(img, masks)
+            colors = np.asarray(colors, dtype=np.float32)
 
             for i in range(N):
                 final_data.append(ObjectDetected(classes[classes_ids[i]],
-                                                 boxes[i], round(scores[i], 2), colors[i]).__dict__)
+                                                 boxes[i], round(scores[i], 2), base64.b64encode(colors[i]).decode('utf-8')).__dict__)
 
         return result.success(ObjectDetectionResult(len(final_data), final_data).__dict__,
                               'no objects found!!!' if len(final_data) == 0 else 'process done successfully!!!')
@@ -51,5 +55,30 @@ def detect(image):
         return result.failed(data=None, message=str(e), status_code=e.code if hasattr(e, 'code') else 500)
 
 
-def match():
-    pass
+def recognition(json_data):
+    try:
+        MATCH_THRESHOLD = 0.5
+        known_colors = decode(json_data['known'])
+        candidates = json_data['candidates']
+        score_list = list()
+        for candidate in candidates:
+            candidate_colors = decode(candidate['colors'])
+            score = match(known_colors, candidate_colors)
+            if score <= MATCH_THRESHOLD:
+                score_list.append(MatchScore(candidate['id'], score).__dict__)
+
+        score_list.sort(key=lambda x: x['score'])
+        return result.success(score_list, 'no matches found!' if len(score_list) == 0 else 'Matches!!!')
+
+    except Exception as e:
+        return result.failed(data=None, message=str(e), status_code=e.code if hasattr(e, 'code') else 500)
+
+
+def match(known_colors, candidate_colors):
+    # calculate distance between colors
+    score = cosine(known_colors, candidate_colors)
+    return score
+
+
+def decode(encode_data):
+    return np.fromstring(base64.b64decode(encode_data), np.float32)

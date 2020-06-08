@@ -1,4 +1,4 @@
-from .classification import detect, match
+from .classification import detect, recognition
 from modules import utility
 from modules.singleton import mrcnn, graph
 import os
@@ -26,7 +26,6 @@ graph.creat_instance()
 fileList = glob.glob(DOWNLOADS_DIR + '/temp*/', recursive=True)
 for filePath in fileList:
     try:
-        print(filePath)
         if os.path.isdir(filePath):
             # os.remove(filePath)
             remove_tree(filePath)

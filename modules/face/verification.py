@@ -4,7 +4,7 @@ from numpy import asarray, random, fromstring, float32, reshape
 from scipy.spatial.distance import cosine
 from keras_vggface.utils import preprocess_input
 from PIL import Image
-from models.response_models import FaceDetected, FaceMatchScore, FaceVerificationResult
+from models.response_models import FaceDetected, MatchScore, FaceVerificationResult
 from models import result
 from modules import utility
 import base64
@@ -33,8 +33,10 @@ def extract_face(images) -> list:
                         face['box'][1] = max(0, face['box'][1])
                         face['confidence'] = round(face['confidence'], 2)
                         faces.append(face)
-                resultData.append(FaceDetected(
-                    data["name"], len(faces), faces).__dict__)
+                
+                if len(faces) > 0 :
+                    resultData.append(FaceDetected(
+                        data["name"], len(faces), faces).__dict__)
 
         return result.success(resultData, " Can't detect any face!" if len(resultData) == 0 else "Process done successfuly")
 
@@ -78,7 +80,7 @@ def match(known_embedding, candidate_embedding):
 def recognition(json_data):
     try:
         MATCH_THRESHOLD = 0.5
-        knowns = get_embeddings(json_data['knowns'])
+        knowns = get_embeddings(json_data['known'])
         candidates = json_data['candidates']
         score_list = list()
         for candidate in candidates:
@@ -92,12 +94,12 @@ def recognition(json_data):
                 
             # append min score to result list if and only if it's less than threshold
             if min_score != None:
-                score_list.append(FaceMatchScore(
+                score_list.append(MatchScore(
                     candidate['id'], min_score).__dict__)
 
         score_list.sort(key=lambda x: x['score'])
         return result.success(FaceVerificationResult(score_list, base64.b64encode(knowns).decode('utf-8')).__dict__, 
-            'no matches found!!!' if len(score_list) == 0 else 'Matches!!!')
+            'no matches found!' if len(score_list) == 0 else 'Matches!!!')
 
     except Exception as e:
         return result.failed(data=None, message=str(e), status_code=e.code if hasattr(e, 'code') else 500)
