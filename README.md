@@ -1,4 +1,4 @@
-# Go tIt ![Technique](https://img.shields.io/badge/Version-1.0-blue)
+# Got It ![Technique](https://img.shields.io/badge/Version-1.0-blue)
 
 Find your lost belongs using mechanisms of AI and Image Processing
 
