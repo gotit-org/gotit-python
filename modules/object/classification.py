@@ -1,7 +1,7 @@
 from modules.singleton import mrcnn, graph
 from modules import utility
 from models import result
-from models.response_models import ObjectDetected, ObjectDetectionResult, MatchScore
+from models.response_models import DetectionResult, DetectedBox, MatchScore, MatchResult
 from setuptools import sandbox
 from scipy.spatial.distance import cosine
 import numpy as np
@@ -20,6 +20,7 @@ def detect(image):
     try:
         # init result list
         final_data = list()
+        match_result = list()
 
         # load model & classes
         model = mrcnn.get_model()
@@ -28,6 +29,7 @@ def detect(image):
         # read image
         img = utility.read_images(
             image, target_size=(448, 448), require_count=1)
+        imageName = img[0]['name']
         img = img[0]['image']
 
         # detect objects
@@ -46,10 +48,10 @@ def detect(image):
             colors = np.asarray(colors, dtype=np.float32)
 
             for i in range(N):
-                final_data.append(ObjectDetected(classes[classes_ids[i]],
+                final_data.append(DetectedBox(classes[classes_ids[i]],
                                                  boxes[i], round(scores[i], 2), base64.b64encode(colors[i]).decode('utf-8')).__dict__)
-
-        return result.success(ObjectDetectionResult(len(final_data), final_data).__dict__,
+        match_result.append(DetectionResult(imageName, len(final_data), final_data).__dict__)
+        return result.success(match_result,
                               'no objects found!!!' if len(final_data) == 0 else 'process done successfully!!!')
     except Exception as e:
         return result.failed(data=None, message=str(e), status_code=e.code if hasattr(e, 'code') else 500)
@@ -58,17 +60,17 @@ def detect(image):
 def recognition(json_data):
     try:
         MATCH_THRESHOLD = 0.5
-        known_colors = decode(json_data['known'])
+        known_colors = decode(json_data['known'])['embedding']
         candidates = json_data['candidates']
         score_list = list()
         for candidate in candidates:
-            candidate_colors = decode(candidate['colors'])
+            candidate_colors = decode(candidate['embedding'])
             score = match(known_colors, candidate_colors)
             if score <= MATCH_THRESHOLD:
                 score_list.append(MatchScore(candidate['id'], score).__dict__)
 
         score_list.sort(key=lambda x: x['score'])
-        return result.success(score_list, 'no matches found!' if len(score_list) == 0 else 'Matches!!!')
+        return result.success(MatchResult(score_list, None).__dict__, 'no matches found!' if len(score_list) == 0 else 'Matches!!!')
 
     except Exception as e:
         return result.failed(data=None, message=str(e), status_code=e.code if hasattr(e, 'code') else 500)

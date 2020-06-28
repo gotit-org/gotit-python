@@ -4,7 +4,7 @@ from numpy import asarray, random, fromstring, float32, reshape
 from scipy.spatial.distance import cosine
 from keras_vggface.utils import preprocess_input
 from PIL import Image
-from models.response_models import FaceDetected, MatchScore, FaceVerificationResult
+from models.response_models import DetectionResult, DetectedBox, MatchScore, MatchResult
 from models import result
 from modules import utility
 import base64
@@ -32,10 +32,11 @@ def extract_face(images) -> list:
                         face['box'][0] = max(0, face['box'][0])
                         face['box'][1] = max(0, face['box'][1])
                         face['confidence'] = round(face['confidence'], 2)
-                        faces.append(face)
+                        faces.append(DetectedBox(
+                            'person', face['box'], face['confidence'], None).__dict__)
                 
                 if len(faces) > 0 :
-                    resultData.append(FaceDetected(
+                    resultData.append(DetectionResult(
                         data["name"], len(faces), faces).__dict__)
 
         return result.success(resultData, " Can't detect any face!" if len(resultData) == 0 else "Process done successfuly")
@@ -47,12 +48,12 @@ def extract_face(images) -> list:
 # extract faces and calculate face embeddings for a list of photo files
 def get_embeddings(known_data):
     faces = list()
-    for data in known_data:
+    for i in range(len(known_data['images'])):
         # crop face from image
-        data['image'] = utility.read_b64image(data['image'])
-        x1, y1 = data['box'][0], data['box'][1]
-        x2, y2 = x1 + data['box'][2], y1 + data['box'][3]
-        face = data['image'][y1:y2, x1:x2]
+        known_data['images'][i] = utility.read_b64image(known_data['images'][i])
+        x1, y1 = known_data['box'][i][0], known_data['box'][i][1]
+        x2, y2 = x1 + known_data['box'][i][2], y1 + known_data['box'][i][3]
+        face = known_data['images'][i][y1:y2, x1:x2]
 
         # resize pixels to the model size
         face = Image.fromarray(face)
@@ -98,7 +99,7 @@ def recognition(json_data):
                     candidate['id'], min_score).__dict__)
 
         score_list.sort(key=lambda x: x['score'])
-        return result.success(FaceVerificationResult(score_list, base64.b64encode(knowns).decode('utf-8')).__dict__, 
+        return result.success(MatchResult(score_list, base64.b64encode(knowns).decode('utf-8')).__dict__, 
             'no matches found!' if len(score_list) == 0 else 'Matches!!!')
 
     except Exception as e:
