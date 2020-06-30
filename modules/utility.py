@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import json
 import base64
+import urllib.request
 
 
 class CustomError(Exception):
@@ -19,67 +20,46 @@ def allowed_file(filename, ALLOWED_EXTENSIONS) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def read_body(body: dict, data_key: str):
-    data = json.loads(body[data_key])
-    return data
-
-
-def read_images(files, target_size=None, require_count=None, limit: int=5) -> list:
+def read_images(images, target_size=None, require_count=None, limit: int=5) -> list:
     try:
-        if limit < len(files):
-            raise CustomError(
-                message="You have exceeded the images limit. you can only upload {} image".format(
-                    limit),
-                code=413
-            )
-
-        if require_count != None and require_count != len(files):
+        if require_count != None and require_count != len(images):
             raise CustomError(
                 message="You have sent an inappropriate number of images. The number of images must be {}".format(
                     require_count),
                 code=400
             )
 
-        images = list()
-        for file in files.keys():
-            images.append(read_image(files[file], target_size))
+        result = list()
+        for image in images:
+            result.append(read_image(image, target_size))
 
-        return images
+        return result
 
     except Exception as e:
         raise e
 
 
-def read_b64image(b64image):
-    image = base64.b64decode(b64image)
-    image = cv2.imdecode(np.fromstring(
-        image, np.uint8), cv2.IMREAD_UNCHANGED)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    return image
-
-
 def read_image(fileData, target_size=None):
     result = None
-    if fileData.filename == '':
+    filename = fileData.rsplit('/', 1)[1].lower()
+    if filename == '':
         raise CustomError(message="file has no name", code=400)
-
-    if allowed_file(fileData.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-        image = cv2.imdecode(np.fromstring(
-            fileData.read(), np.uint8), cv2.IMREAD_UNCHANGED)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        
-        # resize if there is a target size
-        if target_size != None:
-            image = cv2.resize(image, target_size, interpolation=cv2.INTER_NEAREST)
-
-
-        result = {
-            'name': fileData.filename,
-            'image': image
-        }
-
-    else:
+    
+    if not(allowed_file(filename, {'png', 'jpg', 'jpeg'})):
         raise CustomError(message="invalid file extension", code=422)
+    
+    local_filename, headers = urllib.request.urlretrieve(fileData)
+    image = cv2.imread(local_filename)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
+    # resize if there is a target size
+    if target_size != None:
+        image = cv2.resize(image, target_size, interpolation=cv2.INTER_NEAREST)
+
+    result = {
+        'name': filename,
+        'image': image
+    }
 
     return result
 

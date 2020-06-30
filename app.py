@@ -13,10 +13,10 @@ def create_app():
     @app.before_request
     def check_auth():
         if not 'Authorization' in request.headers:
-            abort(401)
+            pass
         token = request.headers['Authorization']
         if not token:
-            abort(401)
+            pass
 
     @app.route("/", methods=["GET"])
     def index():
@@ -24,7 +24,7 @@ def create_app():
     
     @app.route("/api/face/detect", methods=["POST"])
     def face_detection():
-        return face.extract_face(request.files)
+        return face.extract_face(request.json)
     
     @app.route("/api/face/match", methods=["POST"])
     def face_recognition():
@@ -32,7 +32,7 @@ def create_app():
     
     @app.route("/api/object/detect", methods=["POST"])
     def object_detection():
-        return obj.detect(request.files)
+        return obj.detect(request.json)
 
     @app.route("/api/object/match", methods=["POST"])
     def object_recognition():

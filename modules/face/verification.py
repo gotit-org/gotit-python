@@ -50,7 +50,7 @@ def get_embeddings(known_data):
     faces = list()
     for i in range(len(known_data['images'])):
         # crop face from image
-        known_data['images'][i] = utility.read_b64image(known_data['images'][i])
+        known_data['images'][i] = utility.read_image(known_data['images'][i])
         x1, y1 = known_data['box'][i][0], known_data['box'][i][1]
         x2, y2 = x1 + known_data['box'][i][2], y1 + known_data['box'][i][3]
         face = known_data['images'][i][y1:y2, x1:x2]
