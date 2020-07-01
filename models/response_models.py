@@ -21,12 +21,12 @@ class ObjectDetectionResult:
 
 
 class MatchScore:
-    def __init__(self, id, score):
-        self.id = id
+    def __init__(self, itemId, score):
+        self.itemId = itemId
         self.score = score
         
 
 class MatchResult:
-    def __init__(self, matching_score: list, embeddenges: str):
-        self.matching_score = matching_score
-        self.embeddenges = embeddenges
+    def __init__(self, scores: list, embeddings: str):
+        self.scores = scores
+        self.embeddings = embeddings

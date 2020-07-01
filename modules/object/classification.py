@@ -60,17 +60,17 @@ def detect(image):
 def recognition(json_data):
     try:
         MATCH_THRESHOLD = 0.5
-        known_colors = decode(json_data['known'])['embedding']
-        candidates = json_data['candidates']
+        known_colors = decode(json_data['Known'])['Embeddings']
+        candidates = json_data['Candidates']
         score_list = list()
         for candidate in candidates:
-            candidate_colors = decode(candidate['embedding'])
+            candidate_colors = decode(candidate['Embeddings'])
             score = match(known_colors, candidate_colors)
             if score <= MATCH_THRESHOLD:
-                score_list.append(MatchScore(candidate['id'], score).__dict__)
+                score_list.append(MatchScore(candidate['ItemId'], score).__dict__)
 
         score_list.sort(key=lambda x: x['score'])
-        return result.success(MatchResult(score_list, None).__dict__, 'no matches found!' if len(score_list) == 0 else 'Matches!!!')
+        return result.success(MatchResult(score_list, known_colors).__dict__, 'no matches found!' if len(score_list) == 0 else 'Matches!')
 
     except Exception as e:
         return result.failed(data=None, message=str(e), status_code=e.code if hasattr(e, 'code') else 500)

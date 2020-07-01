@@ -10,14 +10,6 @@ def create_app():
     app.config['MAX_CONTENT_LENGTH'] = 15 * 1024 * 1024
 
     # app routes here
-    @app.before_request
-    def check_auth():
-        if not 'Authorization' in request.headers:
-            pass
-        token = request.headers['Authorization']
-        if not token:
-            pass
-
     @app.route("/", methods=["GET"])
     def index():
         return render_template('index.html')

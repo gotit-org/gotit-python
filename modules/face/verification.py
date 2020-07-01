@@ -48,12 +48,12 @@ def extract_face(images) -> list:
 # extract faces and calculate face embeddings for a list of photo files
 def get_embeddings(known_data):
     faces = list()
-    for i in range(len(known_data['images'])):
+    for i in range(len(known_data['Images'])):
         # crop face from image
-        known_data['images'][i] = utility.read_image(known_data['images'][i])
-        x1, y1 = known_data['box'][i][0], known_data['box'][i][1]
-        x2, y2 = x1 + known_data['box'][i][2], y1 + known_data['box'][i][3]
-        face = known_data['images'][i][y1:y2, x1:x2]
+        image_data = utility.read_image(known_data['Images'][i])
+        x1, y1 = known_data['Boxes'][i][0], known_data['Boxes'][i][1]
+        x2, y2 = x1 + known_data['Boxes'][i][2], y1 + known_data['Boxes'][i][3]
+        face = image_data['image'][y1:y2, x1:x2]
 
         # resize pixels to the model size
         face = Image.fromarray(face)
@@ -81,11 +81,11 @@ def match(known_embedding, candidate_embedding):
 def recognition(json_data):
     try:
         MATCH_THRESHOLD = 0.5
-        knowns = get_embeddings(json_data['known'])
-        candidates = json_data['candidates']
+        knowns = get_embeddings(json_data['Known']) if json_data['Known']['Embeddings'] is None else json_data['Known']['Embeddings']
+        candidates = json_data['Candidates']
         score_list = list()
         for candidate in candidates:
-            embeddenges = decode_embeddings(candidate['embedding'])
+            embeddenges = decode_embeddings(candidate['Embeddings'])
             min_score = None
             for embeddenge in embeddenges:
                 for known in knowns:
@@ -96,11 +96,11 @@ def recognition(json_data):
             # append min score to result list if and only if it's less than threshold
             if min_score != None:
                 score_list.append(MatchScore(
-                    candidate['id'], min_score).__dict__)
+                    candidate['ItemId'], min_score).__dict__)
 
         score_list.sort(key=lambda x: x['score'])
         return result.success(MatchResult(score_list, base64.b64encode(knowns).decode('utf-8')).__dict__, 
-            'no matches found!' if len(score_list) == 0 else 'Matches!!!')
+            'no matches found!' if len(score_list) == 0 else 'Matches!')
 
     except Exception as e:
         return result.failed(data=None, message=str(e), status_code=e.code if hasattr(e, 'code') else 500)
