@@ -1,6 +1,6 @@
 from tqdm import tqdm
 import requests
-import cv2
+from PIL import Image
 import numpy as np
 import json
 import base64
@@ -49,12 +49,11 @@ def read_image(fileData, target_size=None):
         raise CustomError(message="invalid file extension", code=422)
     
     local_filename, headers = urllib.request.urlretrieve(fileData)
-    image = cv2.imread(local_filename)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = Image.open(local_filename)
     
     # resize if there is a target size
     if target_size != None:
-        image = cv2.resize(image, target_size, interpolation=cv2.INTER_NEAREST)
+        image = Image.resize(target_size)
 
     result = {
         'name': filename,

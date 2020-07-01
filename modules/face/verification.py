@@ -8,13 +8,6 @@ from models.response_models import DetectionResult, DetectedBox, MatchScore, Mat
 from models import result
 from modules import utility
 import base64
-import cv2
-
-
-def draw_face_box(image, face_box):
-    x, y, w, h = face_box[:]
-    cv2.rectangle(image, (x, y), (x + w, y + h),
-        random.uniform(low=0, high=255, size=(3)), 2)
 
 
 def extract_face(images) -> list:
