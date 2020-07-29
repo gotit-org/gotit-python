@@ -8,3 +8,5 @@ tqdm
 requests
 pybind11
 mrcnn
+opencv-python
+scikit-image

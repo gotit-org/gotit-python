@@ -6,7 +6,7 @@ class DetectedBox:
         self.confidence = confidence
         self.embeddenges = embeddenges
 
-        
+
 class DetectionResult:
     def __init__(self, imageName: str, count: int, detectd: list):
         self.imageName = imageName
@@ -24,7 +24,7 @@ class MatchScore:
     def __init__(self, itemId, score):
         self.itemId = itemId
         self.score = score
-        
+
 
 class MatchResult:
     def __init__(self, scores: list, embeddings: str):
