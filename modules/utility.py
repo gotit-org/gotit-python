@@ -51,6 +51,8 @@ def read_image(fileData, target_size=None):
     local_filename, headers = urllib.request.urlretrieve(fileData)
     image = cv2.imread(local_filename)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    orignial_height = image.shape[0]
+    orignial_width = image.shape[1]
     
     # resize if there is a target size
     if target_size != None:
@@ -58,7 +60,8 @@ def read_image(fileData, target_size=None):
 
     result = {
         'name': filename,
-        'image': image
+        'data': image,
+        'shape': (orignial_height, orignial_width)
     }
 
     return result
@@ -79,3 +82,31 @@ def download_file(url, filename, path):
     t.close()
     if total_size != 0 and t.n != total_size:
         print("ERROR, something went wrong")
+
+
+def decode_embeddings(encode_embeddings, TARGET_SIZE):
+    decoded = fromstring(base64.b64decode(encode_embeddings), float32)
+    n = int(decoded.shape[0] / TARGET_SIZE)
+    return reshape(decoded, (n, TARGET_SIZE))
+
+
+def correct_detect_box(box, original_shape, network_shape):
+    image_h, image_w = original_shape
+    net_h, net_w = network_shape
+    if (float(net_w)/image_w) < (float(net_h)/image_h):
+        new_w = net_w
+        new_h = (image_h * net_w) / image_w
+    else:
+        new_h = net_w
+        new_w = (image_w * net_h) / image_h
+
+    x_offset, x_scale = (net_w - new_w)/2./net_w, float(new_w)/net_w
+    y_offset, y_scale = (net_h - new_h)/2./net_h, float(new_h)/net_h
+    
+    box[0] = int((box[0] - x_offset) / x_scale * image_w)
+    box[1] = int((box[1] - y_offset) / y_scale * image_h)
+    box[2] = int((box[2] - x_offset) / x_scale * image_w)
+    box[3] = int((box[3] - y_offset) / y_scale * image_h)
+
+    # return [x1, x2, width, height]
+    return [box[0], box[1], box[2] - box[0], box[3] - box[1]]

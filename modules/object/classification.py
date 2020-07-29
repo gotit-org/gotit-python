@@ -16,10 +16,14 @@ except ImportError:
     from . import ColorPy
 
 
-def detect(image):
+def detect(images):
     try:
+        # init variables
+        flag = False
+        TARGET_SIZE = (448, 448)
+        CONFIDENCE_THRESHOLD = 0.60
+
         # init result list
-        final_data = list()
         match_result = list()
 
         # load model & classes
@@ -27,32 +31,43 @@ def detect(image):
         classes = mrcnn.get_classes()
 
         # read image
-        img = utility.read_images(
-            image, target_size=(448, 448), require_count=1)
-        imageName = img[0]['name']
-        img = img[0]['image']
+        images = utility.read_images(
+            images, target_size=TARGET_SIZE)
 
-        # detect objects
         with graph.get_instace().as_default():
-            # predict objects
-            objects_result = model.detect([img], verbose=0)[0]
-            boxes = objects_result['rois'].tolist()
-            classes_ids = objects_result['class_ids']
-            scores = objects_result['scores']
-            masks = objects_result['masks']
-            N = len(objects_result['class_ids'])
-            scores = scores.astype('float64').tolist()
+            for image in images:
+                image_match_objects = list()
+                image_name = image['name']
+                image_data = image['data']
+                image_shape = image['shape']
 
-            # get colors for objects
-            colors = ColorPy.get_colors(img, masks)
-            colors = np.asarray(colors, dtype=np.float32)
+                # predict objects
+                objects_result = model.detect([image_data], verbose=0)[0]
+                boxes = objects_result['rois'].tolist()
+                classes_ids = objects_result['class_ids']
+                scores = objects_result['scores']
+                masks = objects_result['masks']
+                N = len(objects_result['class_ids'])
+                scores = scores.astype('float64').tolist()
 
-            for i in range(N):
-                final_data.append(DetectedBox(classes[classes_ids[i]],
-                                                 boxes[i], round(scores[i], 2), base64.b64encode(colors[i]).decode('utf-8')).__dict__)
-        match_result.append(DetectionResult(imageName, len(final_data), final_data).__dict__)
+                # get colors for objects
+                colors = ColorPy.get_colors(image_data, masks)
+                colors = np.asarray(colors, dtype=np.float32)
+
+                for i in range(N):
+                    score = round(scores[i], 2)
+                    if score >= CONFIDENCE_THRESHOLD:
+                        flag = True
+                        y1, x1, y2, x2 = boxes[i]
+                        box = utility.correct_detect_box(
+                            [x1, y1, x2, y2], image_shape, TARGET_SIZE)
+                        image_match_objects.append(DetectedBox(classes[classes_ids[i]],
+                                                               box, score, base64.b64encode(colors[i]).decode('utf-8')).__dict__)
+
+                match_result.append(DetectionResult(image_name, len(
+                    image_match_objects), image_match_objects).__dict__)
         return result.success(match_result,
-                              'no objects found!!!' if len(final_data) == 0 else 'process done successfully!!!')
+                              'no objects found!!!' if not flag else 'process done successfully!!!')
     except Exception as e:
         return result.failed(data=None, message=str(e), status_code=e.code if hasattr(e, 'code') else 500)
 
@@ -60,14 +75,18 @@ def detect(image):
 def recognition(json_data):
     try:
         MATCH_THRESHOLD = 0.5
-        known_colors = decode(json_data['Known'])['Embeddings']
+        TARGET_SIZE = 11
+        known_colors = utility.decode_embeddings(
+            json_data['Known']['Embeddings'], TARGET_SIZE)
         candidates = json_data['Candidates']
         score_list = list()
         for candidate in candidates:
-            candidate_colors = decode(candidate['Embeddings'])
+            candidate_colors = utility.decode_embeddings(
+                candidate['Embeddings'], TARGET_SIZE)
             score = match(known_colors, candidate_colors)
             if score <= MATCH_THRESHOLD:
-                score_list.append(MatchScore(candidate['ItemId'], score).__dict__)
+                score_list.append(MatchScore(
+                    candidate['ItemId'], score).__dict__)
 
         score_list.sort(key=lambda x: x['score'])
         return result.success(MatchResult(score_list, known_colors).__dict__, 'no matches found!' if len(score_list) == 0 else 'Matches!')
@@ -80,7 +99,3 @@ def match(known_colors, candidate_colors):
     # calculate distance between colors
     score = cosine(known_colors, candidate_colors)
     return score
-
-
-def decode(encode_data):
-    return np.fromstring(base64.b64decode(encode_data), np.float32)
