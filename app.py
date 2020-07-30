@@ -57,3 +57,4 @@ if __name__ == "__main__":
     app = create_app()
     # to start server run this command
     # SET FLASK_APP=app.py & flask run
+    app.run()
