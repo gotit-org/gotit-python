@@ -131,4 +131,5 @@ dmypy.json
 # Keras models
 *.h5
 
+*env/
 # End of https://www.gitignore.io/api/django

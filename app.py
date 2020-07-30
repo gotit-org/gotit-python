@@ -8,7 +8,7 @@ def create_app():
     app = Flask("got it", instance_relative_config=True)
     # configure max size of payload content 
     app.config['MAX_CONTENT_LENGTH'] = 15 * 1024 * 1024
-
+    
     # app routes here
     @app.route("/", methods=["GET"])
     def index():
@@ -55,5 +55,5 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    # For DEVELOPMENT only
-    app.run(debug=False)
+    # to start server run this command
+    # SET FLASK_APP=app.py & flask run
