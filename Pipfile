@@ -6,10 +6,29 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-flask = "*"
+flask = "==1.1.2"
 tensorflow = "==1.15.2"
 keras = "==2.2.5"
 mtcnn = "*"
+gunicorn = "*"
+absl-py = "==0.9.0"
+astor = "==0.8.1"
+certifi = "==2020.6.20"
+chardet = "==3.0.4"
+click = "==7.1.2"
+cycler = "==0.10.0"
+decorator = "==4.4.2"
+gast = "==0.2.2"
+google-pasta = "==0.2.0"
+grpcio = "==1.30.0"
+h5py = "==2.10.0"
+idna = "==2.10"
+imageio = "==2.9.0"
+importlib-metadata = "==1.7.0"
+itsdangerous = "==1.1.0"
+jinja2 = "==2.11.2"
+keras-applications = "==1.0.8"
+keras-preprocessing = "==1.1.2"
 
 [requires]
 python_version = "3.6"
