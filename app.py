@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, abort
 from modules import face, object as obj, utility
 from models import result
-
+from waitress import serve
 
 def create_app():
     # create and configure the app
@@ -58,4 +58,4 @@ if __name__ == "__main__":
     # to start server run this command
     # windows: SET FLASK_APP=app.py & flask run
     # linux: export FLASK_APP=app.py & flask run
-    app.run()
+    serve(app)
