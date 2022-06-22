@@ -3,7 +3,7 @@ tensorflow==1.15.2
 keras==2.2.5
 mtcnn
 git+https://github.com/rcmalli/keras-vggface.git
-numpy==1.16.4
+numpy==1.22.0
 tqdm
 requests
 pybind11
